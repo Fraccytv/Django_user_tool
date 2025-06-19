@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     "profiles",  # Custom app for user profiles
     "twofactor",  # Custom app for two-factor authentication
     "logs",  # Custom app for logging user actions
-]
+    'bootstrap5',  # Bootstrap 5 support
+    
+    ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
