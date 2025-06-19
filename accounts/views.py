@@ -1,6 +1,6 @@
 import base64
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .crypto_utils import (
     generate_key,
     generate_salt,
@@ -8,17 +8,22 @@ from .crypto_utils import (
     decrypt_password,
 )
 from .models import User
+from .forms import RegisterForm
 
 # Create your views here.
 
 
 def register(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        email = request.POST.get("email")
-
-        if username and password and email:
+        form = RegisterForm(request.POST)
+        
+        if form.is_valid():
+            username = form.cleaned_data.get("username")
+            email = form.cleaned_data.get("email")
+            password = form.cleaned_data.get("password")
+            confirm_password = form.cleaned_data.get("confirm_password")
+            
+        
             errors = []
             if User.objects.filter(username=username).exists():
                 errors.append("Already in use.")
@@ -26,7 +31,8 @@ def register(request):
                 errors.append("Already in use.")
 
             if errors:
-                return render(request, "accounts/register.html", {"errors": errors})
+                return render(request, "accounts/register.html", {"form": form, "errors": errors})
+
 
             salt = generate_salt()
             key = generate_key(password, salt)
@@ -40,7 +46,14 @@ def register(request):
                 encrypted_password=encrypted_pw.decode(),
                 salt=salt_str,
             )
-
+            
             return render(request, "accounts/login.html")
+        
+    else:
+        form = RegisterForm()
 
-    return render(request, "accounts/register.html")
+    return render(request, "accounts/register.html", {"form": form})
+
+
+def login_view(request):
+    return render(request, "accounts/login.html")
