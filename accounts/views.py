@@ -21,14 +21,13 @@ def register(request):
         if username and password and email:
             errors = []
             if User.objects.filter(username=username).exists():
-                errors.append("Username already taken.")
+                errors.append("Already in use.")
             if User.objects.filter(email=email).exists():
-                errors.append("Email already in use.")
+                errors.append("Already in use.")
 
             if errors:
                 return render(request, "accounts/register.html", {"errors": errors})
 
-            # Create a new user
             salt = generate_salt()
             key = generate_key(password, salt)
             encrypted_pw = encrypt_password(password, key)
