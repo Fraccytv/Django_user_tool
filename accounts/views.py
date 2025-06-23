@@ -1,16 +1,18 @@
 import base64
 
 from django.shortcuts import render, redirect
-from .crypto_utils import (
+from .crypto_utils import (  # Make sure this file is included in your new app
     generate_key,
     generate_salt,
     encrypt_password,
     decrypt_password,
 )
-from .models import User
-from .forms import RegisterForm, LoginForm
+from .models import User  # Your custom user model
+from .forms import RegisterForm, LoginForm  # Make sure your forms.py is copied as well
 
-
+# ==========================
+# REGISTER
+# ==========================
 def register(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
@@ -23,11 +25,11 @@ def register(request):
 
             errors = []
 
-            # ✅ Password match check
+            # 🔐 Check if passwords match
             if password != confirm_password:
                 errors.append("Passwords do not match.")
 
-            # ✅ Tjek om brugernavn og email allerede er i brug
+            # 🧠 Check for duplicate username or email
             if User.objects.filter(username=username).exists():
                 errors.append("Username already in use.")
             if User.objects.filter(email=email).exists():
@@ -35,32 +37,36 @@ def register(request):
 
             if errors:
                 return render(
-                    request, "accounts/register.html", {"form": form, "errors": errors}
+                    request,
+                    "accounts/register.html",  # ⚠️ CHANGE if your templates folder is renamed
+                    {"form": form, "errors": errors},
                 )
 
-            # ✅ Krypter adgangskode
+            # 🔐 Encrypt password before saving
             salt = generate_salt()
             key = generate_key(password, salt)
             encrypted_pw = encrypt_password(password, key)
             salt_str = base64.b64encode(salt).decode()
 
-            # ✅ Opret bruger
+            # ✅ Save user
             User.objects.create(
-                username=username.lower(),  # bonus: normaliseret
-                email=email.lower(),  # bonus: normaliseret
+                username=username.lower(),  # Normalize input
+                email=email.lower(),
                 encrypted_password=encrypted_pw.decode(),
                 salt=salt_str,
             )
 
-            # ✅ Redirect i stedet for render (undgår resubmit)
-            return redirect("login")
+            return redirect("login")  # ⚠️ CHANGE if your login URL name is different
 
     else:
         form = RegisterForm()
 
-    return render(request, "accounts/register.html", {"form": form})
+    return render(request, "accounts/register.html", {"form": form})  # ⚠️ CHANGE if needed
 
 
+# ==========================
+# LOGIN
+# ==========================
 def login_view(request):
     form = LoginForm(request.POST or None)
 
@@ -71,25 +77,25 @@ def login_view(request):
         try:
             user = User.objects.get(username=username)
 
-            # ✅ Beskyt mod manglende data
+            # ⚠️ Protect against corrupted user data
             if not user.salt or not user.encrypted_password:
                 return render(
                     request,
-                    "accounts/login.html",
+                    "accounts/login.html",  # ⚠️ CHANGE if needed
                     {
                         "form": form,
                         "error": "User data corrupted. Please reset or contact support.",
                     },
                 )
 
-            # ✅ Dekrypter adgangskode
+            # 🔓 Decrypt password and compare
             salt = base64.b64decode(user.salt.encode())
             key = generate_key(password, salt)
             decrypted_password = decrypt_password(user.encrypted_password.encode(), key)
 
             if decrypted_password == password:
-                request.session["user_id"] = user.id
-                return redirect("home")
+                request.session["user_id"] = user.id  # ✅ Store user in session
+                return redirect("home")  # ⚠️ CHANGE if your home URL name is different
             else:
                 return render(
                     request,
@@ -104,25 +110,32 @@ def login_view(request):
                 {"form": form, "error": "Invalid credentials."},
             )
 
-    return render(request, "accounts/login.html", {"form": form})
+    return render(request, "accounts/login.html", {"form": form})  # ⚠️ CHANGE if needed
 
 
+# ==========================
+# HOME (Protected View)
+# ==========================
 def home(request):
     user_id = request.session.get("user_id")
 
     if not user_id:
-        return redirect("login")
+        return redirect("login")  # ⚠️ CHANGE if your login view name is different
 
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         return redirect("login")
 
-    return render(request, "accounts/home.html", {"user": user})
+    return render(request, "accounts/home.html", {"user": user})  # ⚠️ CHANGE if needed
 
+
+# ==========================
+# LOGOUT
+# ==========================
 def logout_view(request):
     if request.method == "POST":
-        request.session.flush()
-        return redirect("login")
+        request.session.flush()  # 🔥 Completely clears the session (logs out user)
+        return redirect("login")  # ⚠️ CHANGE if your login view name is different
 
-    return render(request, "accounts/logout.html")
+    return render(request, "accounts/logout.html")  # ⚠️ CHANGE if needed
