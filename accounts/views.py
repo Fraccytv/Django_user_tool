@@ -9,6 +9,9 @@ from .crypto_utils import (  # Make sure this file is included in your new app
 )
 from .models import User  # Your custom user model
 from .forms import RegisterForm, LoginForm  # Make sure your forms.py is copied as well
+from logs.models import Log
+
+
 
 # ==========================
 # REGISTER
@@ -95,8 +98,26 @@ def login_view(request):
 
             if decrypted_password == password:
                 request.session["user_id"] = user.id  # ✅ Store user in session
+                
+                ip = request.META.get("REMOTE_ADDR", "unknown_ip")
+                Log.objects.create(
+                    user=user,
+                    ip_address=ip,
+                    status="success",
+                    event_type="login",
+                )
+                
                 return redirect("home")  # ⚠️ CHANGE if your home URL name is different
             else:
+                
+                ip = request.META.get("REMOTE_ADDR", "unknown_ip")
+                Log.objects.create(
+                    user=user,
+                    ip_address=ip,
+                    status="failure",
+                    event_type="login",
+                )
+                
                 return render(
                     request,
                     "accounts/login.html",
