@@ -58,6 +58,14 @@ def register(request):
                 encrypted_password=encrypted_pw.decode(),
                 salt=salt_str,
             )
+            
+            ip = request.META.get("REMOTE_ADDR", "unknown_ip")
+            Log.objects.create(
+                user=username,
+                ip_address=ip,
+                status="success",
+                event_type="login",
+            )
 
             return redirect("login")  # ⚠️ CHANGE if your login URL name is different
 
@@ -155,7 +163,22 @@ def home(request):
 # LOGOUT
 # ==========================
 def logout_view(request):
+    
     if request.method == "POST":
+        # 🔥 Clear the session to log out the use
+        user_id = request.session.get("user_id")
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+                ip = request.META.get("REMOTE_ADDR", "unknown_ip")
+                Log.objects.create(
+                    user=user.username,
+                    ip_address=ip,
+                    status="success",
+                    event_type="logout",
+                )
+            except User.DoesNotExist:
+                pass
         request.session.flush()  # 🔥 Completely clears the session (logs out user)
         return redirect("login")  # ⚠️ CHANGE if your login view name is different
 
