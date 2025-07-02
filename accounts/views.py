@@ -51,20 +51,21 @@ def register(request):
             encrypted_pw = encrypt_password(password, key)
             salt_str = base64.b64encode(salt).decode()
 
-            # ✅ Save user
-            User.objects.create(
-                username=username.lower(),  # Normalize input
+            # ✅ Create user and store instance in a variable
+            user = User.objects.create(
+                username=username.lower(),
                 email=email.lower(),
                 encrypted_password=encrypted_pw.decode(),
                 salt=salt_str,
             )
-            
+
+            # ✅ Use the actual user object for logging
             ip = request.META.get("REMOTE_ADDR", "unknown_ip")
             Log.objects.create(
-                user=username,
+                user=user,  # ← not User (the class), not a string. The instance you just created
                 ip_address=ip,
                 status="success",
-                event_type="login",
+                event_type="register",  # Optional: Use "register" instead of "login"
             )
 
             return redirect("login")  # ⚠️ CHANGE if your login URL name is different
@@ -172,7 +173,7 @@ def logout_view(request):
                 user = User.objects.get(id=user_id)
                 ip = request.META.get("REMOTE_ADDR", "unknown_ip")
                 Log.objects.create(
-                    user=user.username,
+                    user=user,
                     ip_address=ip,
                     status="success",
                     event_type="logout",
