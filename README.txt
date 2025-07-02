@@ -129,4 +129,4 @@ sessiontracker/ – show active user sessions and device info
 MIT – free to use, modify, and share.
 
 ✍️ Author
-Built with ❤️ by [Your Name]. Contributions welcome.
+Built with ❤️ by Kennet Olesen - Fraccy. Contributions welcome.
