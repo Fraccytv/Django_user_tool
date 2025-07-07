@@ -1,12 +1,12 @@
 from django.test import TestCase
 from django.utils import timezone
-from accounts.models import User
+from accounts.models import CustomUser
 from logs.models import Log
 
 class LogModelTestCase(TestCase):
     def test_log_creation(self):
         # Opret en testbruger
-        user = User.objects.create(
+        user = CustomUser.objects.create(
             username="tester",
             email="tester@example.com",
             encrypted_password="dummy",
@@ -30,7 +30,7 @@ class LogModelTestCase(TestCase):
 
         # Assertion tests (vil fejle hvis noget er forkert)
         self.assertEqual(log.user, user)
-        self.assertEqual(log.ip_address,"")
+        self.assertEqual(log.ip_address,"127.0.0.1")
         self.assertEqual(log.status, "success")
         self.assertEqual(log.event_type, "login")
         self.assertTrue((timezone.now() - log.timestamp).total_seconds() < 5)

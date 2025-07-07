@@ -7,7 +7,7 @@ from .crypto_utils import (  # Make sure this file is included in your new app
     encrypt_password,
     decrypt_password,
 )
-from .models import User  # Your custom user model
+from .models import CustomUser  # Your custom user model
 from .forms import RegisterForm, LoginForm  # Make sure your forms.py is copied as well
 from logs.models import Log
 
@@ -33,9 +33,9 @@ def register(request):
                 errors.append("Passwords do not match.")
 
             # 🧠 Check for duplicate username or email
-            if User.objects.filter(username=username).exists():
+            if CustomUser.objects.filter(username=username).exists():
                 errors.append("Username already in use.")
-            if User.objects.filter(email=email).exists():
+            if CustomUser.objects.filter(email=email).exists():
                 errors.append("Email already in use.")
 
             if errors:
@@ -52,7 +52,7 @@ def register(request):
             salt_str = base64.b64encode(salt).decode()
 
             # ✅ Create user and store instance in a variable
-            user = User.objects.create(
+            user = CustomUser.objects.create(
                 username=username.lower(),
                 email=email.lower(),
                 encrypted_password=encrypted_pw.decode(),
@@ -87,7 +87,7 @@ def login_view(request):
         password = form.cleaned_data.get("password")
 
         try:
-            user = User.objects.get(username=username)
+            user = CustomUser.objects.get(username=username)
 
             # ⚠️ Protect against corrupted user data
             if not user.salt or not user.encrypted_password:
@@ -133,7 +133,7 @@ def login_view(request):
                     {"form": form, "error": "Invalid credentials."},
                 )
 
-        except User.DoesNotExist:
+        except CustomUser.DoesNotExist:
             return render(
                 request,
                 "accounts/login.html",
@@ -153,8 +153,8 @@ def home(request):
         return redirect("login")  # ⚠️ CHANGE if your login view name is different
 
     try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
         return redirect("login")
 
     return render(request, "accounts/home.html", {"user": user})  # ⚠️ CHANGE if needed
@@ -170,7 +170,7 @@ def logout_view(request):
         user_id = request.session.get("user_id")
         if user_id:
             try:
-                user = User.objects.get(id=user_id)
+                user = CustomUser.objects.get(id=user_id)
                 ip = request.META.get("REMOTE_ADDR", "unknown_ip")
                 Log.objects.create(
                     user=user,
@@ -178,7 +178,7 @@ def logout_view(request):
                     status="success",
                     event_type="logout",
                 )
-            except User.DoesNotExist:
+            except CustomUser.DoesNotExist:
                 pass
         request.session.flush()  # 🔥 Completely clears the session (logs out user)
         return redirect("login")  # ⚠️ CHANGE if your login view name is different
