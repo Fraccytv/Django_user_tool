@@ -12,7 +12,7 @@ class LogModelTestCase(TestCase):
             encrypted_password="dummy",
             salt="salt123"
         )
-        print("✅ Created test user:", user.username)
+        print("Created test user:", user.username)
 
         # Opret en log for login-hændelse
         log = Log.objects.create(
@@ -21,7 +21,7 @@ class LogModelTestCase(TestCase):
             status="success",
             event_type="login"
         )
-        print("📝 Created log entry:")
+        print("Created log entry:")
         print(f"  - User: {log.user}")
         print(f"  - IP Address: {log.ip_address}")
         print(f"  - Status: {log.status}")
@@ -35,4 +35,4 @@ class LogModelTestCase(TestCase):
         self.assertEqual(log.event_type, "login")
         self.assertTrue((timezone.now() - log.timestamp).total_seconds() < 5)
 
-        print("✅ Log creation test passed.")
+        print("Log creation test passed. ✅")

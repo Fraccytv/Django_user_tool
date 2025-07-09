@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from .models import User
+from .models import CustomUser
 import pprint
 
 # 🔍 Status code explanations for debugging
@@ -34,9 +34,9 @@ class UserFlowTestCase(TestCase):
         print("🔹 Registration form errors:")
         pprint.pprint(response.context.get("form").errors if response.context else "No context")
 
-        self.assertTrue(User.objects.filter(username="testuser").exists())
-        user = User.objects.get(username="testuser")
-        print("✅ User created:", user.username, user.email)
+        self.assertTrue(CustomUser.objects.filter(username="testuser").exists())
+        user = CustomUser.objects.get(username="testuser")
+        print(" User created:", user.username, user.email)
 
         # ======== 🧪 LOGIN ========
         login_data = {
@@ -55,7 +55,7 @@ class UserFlowTestCase(TestCase):
         print("🔹 Login redirect to home? ", response.url if status == 302 else "Not redirected")
 
         session_user_id = self.client.session.get("user_id")
-        print("✅ Session user_id:", session_user_id)
+        print(" Session user_id:", session_user_id)
         self.assertEqual(session_user_id, user.id)
 
         # ======== 🧪 LOGOUT ========
@@ -67,4 +67,4 @@ class UserFlowTestCase(TestCase):
         print("🔹 Session after logout:", dict(self.client.session))
 
         self.assertIsNone(self.client.session.get("user_id"))
-        print("✅ User is logged out properly")
+        print(" User is logged out properly ✅")

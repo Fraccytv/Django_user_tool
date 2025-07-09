@@ -1,17 +1,12 @@
 import base64
 
 from django.shortcuts import render, redirect
-from .crypto_utils import (  # Make sure this file is included in your new app
-    generate_key,
-    generate_salt,
-    encrypt_password,
-    decrypt_password,
+from .crypto_utils import ( generate_key, generate_salt, encrypt_password, decrypt_password,
 )
-from .models import CustomUser  # Your custom user model
-from .forms import RegisterForm, LoginForm  # Make sure your forms.py is copied as well
+from .models import CustomUser  
+from .forms import RegisterForm, LoginForm  
 from logs.models import Log
-
-
+from utils.decorators import session_login_required 
 
 # ==========================
 # REGISTER
@@ -53,8 +48,8 @@ def register(request):
 
             # ✅ Create user and store instance in a variable
             user = CustomUser.objects.create(
-                username=username.lower(),
-                email=email.lower(),
+                username=username.lower() if username else "",
+                email=email.lower() if email else "",
                 encrypted_password=encrypted_pw.decode(),
                 salt=salt_str,
             )
@@ -73,7 +68,9 @@ def register(request):
     else:
         form = RegisterForm()
 
-    return render(request, "accounts/register.html", {"form": form})  # ⚠️ CHANGE if needed
+    return render(
+        request, "accounts/register.html", {"form": form}
+    )  # ⚠️ CHANGE if needed
 
 
 # ==========================
@@ -83,7 +80,11 @@ def login_view(request):
     form = LoginForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        username = form.cleaned_data.get("username").lower()
+        username = form.cleaned_data.get("username")
+        if username:
+            username = username.lower()
+        else:
+            username = ""
         password = form.cleaned_data.get("password")
 
         try:
@@ -107,7 +108,7 @@ def login_view(request):
 
             if decrypted_password == password:
                 request.session["user_id"] = user.id  # ✅ Store user in session
-                
+
                 ip = request.META.get("REMOTE_ADDR", "unknown_ip")
                 Log.objects.create(
                     user=user,
@@ -115,10 +116,10 @@ def login_view(request):
                     status="success",
                     event_type="login",
                 )
-                
+
                 return redirect("home")  # ⚠️ CHANGE if your home URL name is different
             else:
-                
+
                 ip = request.META.get("REMOTE_ADDR", "unknown_ip")
                 Log.objects.create(
                     user=user,
@@ -126,7 +127,7 @@ def login_view(request):
                     status="failure",
                     event_type="login",
                 )
-                
+
                 return render(
                     request,
                     "accounts/login.html",
@@ -146,12 +147,10 @@ def login_view(request):
 # ==========================
 # HOME (Protected View)
 # ==========================
+@session_login_required  
 def home(request):
     user_id = request.session.get("user_id")
-
-    if not user_id:
-        return redirect("login")  # ⚠️ CHANGE if your login view name is different
-
+    
     try:
         user = CustomUser.objects.get(id=user_id)
     except CustomUser.DoesNotExist:
@@ -164,7 +163,7 @@ def home(request):
 # LOGOUT
 # ==========================
 def logout_view(request):
-    
+
     if request.method == "POST":
         # 🔥 Clear the session to log out the use
         user_id = request.session.get("user_id")
