@@ -5,6 +5,7 @@ from .models import Profile
 from accounts.models import CustomUser
 from utils.decorators import session_login_required
 
+
 @session_login_required  
 def profile_view(request):
     user_id = request.session.get("user_id")
@@ -14,8 +15,8 @@ def profile_view(request):
         return redirect("login")
 
     user = CustomUser.objects.get(id=user_id)
-    profile, created = Profile.objects.get_or_create(user=user)
-
+    profile = user.profile # type: ignore[attr-defined]
+    
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():

@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "accounts",  # Custom app for user management
-    "profiles",  # Custom app for user profiles
+    "profiles.apps.ProfilesConfig", # Ensure the ProfilesConfig is loaded
     "twofactor",  # Custom app for two-factor authentication
     "logs",  # Custom app for logging user actions
     'bootstrap5',  # Bootstrap 5 support
