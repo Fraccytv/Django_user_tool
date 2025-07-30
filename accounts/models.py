@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class CustomUser(models.Model):
     username = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
@@ -13,6 +14,7 @@ class CustomUser(models.Model):
     class Meta:
         verbose_name = "CustomUser"
         verbose_name_plural = "CustomUsers"
+
 
 # 💡 Notes:
 # - Passwords are encrypted using Fernet (not Django's default hashing)
