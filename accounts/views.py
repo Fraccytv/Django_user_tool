@@ -7,6 +7,11 @@ from .models import CustomUser
 from .forms import RegisterForm, LoginForm  
 from logs.models import Log
 from utils.decorators import session_login_required 
+# from twofactor.backup import verify_backup_code
+
+
+
+
 
 # ==========================
 # REGISTER
@@ -23,11 +28,11 @@ def register(request):
 
             errors = []
 
-            # 🔐 Check if passwords match
+            #  Check if passwords match
             if password != confirm_password:
                 errors.append("Passwords do not match.")
 
-            # 🧠 Check for duplicate username or email
+            #  Check for duplicate username or email
             if CustomUser.objects.filter(username=username).exists():
                 errors.append("Username already in use.")
             if CustomUser.objects.filter(email=email).exists():
@@ -36,17 +41,17 @@ def register(request):
             if errors:
                 return render(
                     request,
-                    "accounts/register.html",  # ⚠️ CHANGE if your templates folder is renamed
+                    "accounts/register.html",  #  CHANGE if your templates folder is renamed
                     {"form": form, "errors": errors},
                 )
 
-            # 🔐 Encrypt password before saving
+            #  Encrypt password before saving
             salt = generate_salt()
             key = generate_key(password, salt)
             encrypted_pw = encrypt_password(password, key)
             salt_str = base64.b64encode(salt).decode()
 
-            # ✅ Create user and store instance in a variable
+            #  Create user and store instance in a variable
             user = CustomUser.objects.create(
                 username=username.lower() if username else "",
                 email=email.lower() if email else "",
@@ -54,7 +59,7 @@ def register(request):
                 salt=salt_str,
             )
 
-            # ✅ Use the actual user object for logging
+            #  Use the actual user object for logging
             ip = request.META.get("REMOTE_ADDR", "unknown_ip")
             Log.objects.create(
                 user=user,  # ← not User (the class), not a string. The instance you just created
@@ -63,14 +68,14 @@ def register(request):
                 event_type="register",  # Optional: Use "register" instead of "login"
             )
 
-            return redirect("login")  # ⚠️ CHANGE if your login URL name is different
+            return redirect("login")  #  CHANGE if your login URL name is different
 
     else:
         form = RegisterForm()
 
     return render(
         request, "accounts/register.html", {"form": form}
-    )  # ⚠️ CHANGE if needed
+    )  #  CHANGE if needed
 
 
 # ==========================
@@ -90,24 +95,24 @@ def login_view(request):
         try:
             user = CustomUser.objects.get(username=username)
 
-            # ⚠️ Protect against corrupted user data
+            #  Protect against corrupted user data
             if not user.salt or not user.encrypted_password:
                 return render(
                     request,
-                    "accounts/login.html",  # ⚠️ CHANGE if needed
+                    "accounts/login.html",  #  CHANGE if needed
                     {
                         "form": form,
                         "error": "User data corrupted. Please reset or contact support.",
                     },
                 )
 
-            # 🔓 Decrypt password and compare
+            #  Decrypt password and compare
             salt = base64.b64decode(user.salt.encode())
             key = generate_key(password, salt)
             decrypted_password = decrypt_password(user.encrypted_password.encode(), key)
 
             if decrypted_password == password:
-                request.session["user_id"] = user.id  # ✅ Store user in session
+                request.session["user_id"] = user.id  #  Store user in session
 
                 ip = request.META.get("REMOTE_ADDR", "unknown_ip")
                 Log.objects.create(
@@ -117,7 +122,26 @@ def login_view(request):
                     event_type="login",
                 )
 
-                return redirect("home")  # ⚠️ CHANGE if your home URL name is different
+                return redirect("home")  #  CHANGE if your home URL name is different
+
+                # ================================================
+                # BACKUP CODE FALLBACK (2FA bypass if needed)
+                # ================================================
+                # from twofactor.backup import verify_backup_code
+                #
+                # code_input = request.POST.get("backup_code")
+                #
+                # if verify_backup_code(user, code_input):
+                #     login(request, user)  # Django login
+                #     return redirect("dashboard")
+                # else:
+                #     return render(
+                #         request,
+                #         "twofactor/verify_2fa.html",
+                #         {"error": "Invalid backup code"},
+                #     )
+                # ================================================
+
             else:
 
                 ip = request.META.get("REMOTE_ADDR", "unknown_ip")
@@ -141,7 +165,8 @@ def login_view(request):
                 {"form": form, "error": "Invalid credentials."},
             )
 
-    return render(request, "accounts/login.html", {"form": form})  # ⚠️ CHANGE if needed
+    return render(request, "accounts/login.html", {"form": form})  #  CHANGE if needed
+
 
 
 # ==========================
@@ -156,7 +181,7 @@ def home(request):
     except CustomUser.DoesNotExist:
         return redirect("login")
 
-    return render(request, "accounts/home.html", {"user": user})  # ⚠️ CHANGE if needed
+    return render(request, "accounts/home.html", {"user": user})  #  CHANGE if needed
 
 
 # ==========================
