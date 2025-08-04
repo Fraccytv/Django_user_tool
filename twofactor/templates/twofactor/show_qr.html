@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="container">
+    <h1>Two-Factor Authentication QR Code</h1>
+    <p>Scan the QR code below with your authenticator app to set up two-factor authentication.</p>
+    <img src="{{ qr_code }}" alt="QR Code for Two-Factor Authentication" />
+  </div>
+{% endblock %}

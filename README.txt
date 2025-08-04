@@ -1,16 +1,16 @@
-# 🔐 Django Modular User System
+# Django Modular User System
 
-A modular, secure, and beginner-friendly user authentication system for Django – built completely without Django's default `auth.User`.
+A modular, secure, and beginner-friendly user authentication system for Django – built completely **without Django's default `auth.User`**.
 
 ---
 
-## 📦 Included Apps
+## Included Apps
 
 ### `accounts/`
 - User registration
 - Login / logout
 - Password encryption using salt + `cryptography`
-- Session-based authentication
+- Session-based authentication (no `auth.User`)
 - Custom forms using `forms.py`
 
 ### `log/`
@@ -18,9 +18,22 @@ A modular, secure, and beginner-friendly user authentication system for Django �
 - Stores IP address, timestamp, and event type
 - Integrated with Django Admin (no frontend view required)
 
+### `twofactor/`
+- Optional TOTP-based two-factor authentication (2FA)
+- Secret key generation using `pyotp`
+- QR code generation using `qrcode`
+- Token validation for user authentication
+- Designed as a standalone library – no views or UI code
+
+### `profiles/`
+- Optional user profile extension
+- Stores additional user info like name, avatar, and settings
+- Linked to your custom user model via `OneToOneField`
+- Easy to extend and customize
+
 ---
 
-## 🧱 Project Structure
+## Project Structure
 
 your_project/
 ├── accounts/
@@ -39,13 +52,26 @@ your_project/
 │ ├── models.py
 │ ├── admin.py
 │
+├── twofactor/
+│ ├── models.py
+│ ├── services.py
+│ ├── utils.py
+│
+├── profiles/
+│ ├── models.py
+│ ├── views.py
+│ ├── urls.py
+│ └── templates/profiles/
+│ └── profile.html
+│
 ├── templates/
 │ └── base.html
 │
-├── your_project/ ← Django project folder (settings.py, urls.py)
+├── your_project/ # Django project folder (settings.py, urls.py)
 │
 ├── manage.py
 └── requirements.txt
+
 
 ---
 
@@ -53,54 +79,75 @@ your_project/
 
 ### 1. Copy the folders into your Django project
 
-- Place `accounts/`, `log/`, and `templates/` in your main project.
+- Place `accounts/`, `log/`, `twofactor/`, `profiles/`, and `templates/` in your main project folder.
 - Make sure the directory structure matches the example above.
 
 ---
 
 ### 2. Update `settings.py`
 
-Add both apps:
+Add all apps:
 
 ```python
 INSTALLED_APPS = [
     ...,
     "accounts",
     "log",
+    "twofactor",
+    "profiles",
 ]
-
-
-3. Configure URLs
-In your project-level urls.py, include the accounts app:
 
 
 from django.urls import path, include
 
 urlpatterns = [
     ...,
-    path("", include("accounts.urls")),  # Login, register, logout, home
+    path("", include("accounts.urls")),   # Login, register, logout, home
+    path("profiles/", include("profiles.urls")),  # Optional profile pages
 ]
-No need to include log/urls — the log app is handled via Django Admin.
 
-4. Migrate the database
-Run the following:
-
-
+MIGRATE THE DATABASE
 python manage.py makemigrations
 python manage.py migrate
 
-5. Create superuser (optional, for logs)
+
+(OPTIONAL) Create superuser for Admin
 python manage.py createsuperuser
-Then log into /admin to view login logs.
 
-🔐 How It Works
-When users register, their password is salted and encrypted using cryptography's Fernet.
 
-On login, the password is decrypted and compared.
+How It Works
+Passwords are encrypted using cryptography with salt per user.
 
-Sessions are used for authentication (not Django's default login system).
+Users log in via custom views and session logic – not Django's built-in login.
 
-Login attempts are automatically logged in the log app.
+All login attempts are recorded via the log app.
+
+The twofactor/ app can be optionally used to enable 2FA via TOTP.
+
+The profiles/ app allows extra user info to be stored and edited.
+
+How to Use the twofactor/ App
+The twofactor/ app is designed as a library, not a full UI.
+
+It gives you:
+
+Secret key generation:
+
+from twofactor.services import generate_secret_key
+ QR code generation:
+
+
+from twofactor.services import get_user_qr  # uses user.email + secret_key
+
+Token verification:
+
+from twofactor.services import verify_token
+
+if verify_token(user, token):
+    user.usertwofactor.is_enabled = True
+    user.usertwofactor.save()
+
+You build your own forms and templates to scan, activate, and verify tokens.
 
 🧪 Requirements
 Python 3.8+
@@ -109,24 +156,27 @@ Django 4.x+
 
 cryptography
 
-Install dependencies:
+pyotp
 
+qrcode
+
+Pillow (for QR image generation)
+
+Install dependencies:
 pip install -r requirements.txt
 
-💡 Ready for Expansion
+Built for Expansion
+This system is built to grow with you.
 
-This system is built to grow. Ideas for future apps:
+Ideas for future apps:
 
-profiles/ – custom user details, avatars, settings
+auditlog/ – track user actions, model edits
 
-twofactor/ – 2FA with QR and TOTP
+sessiontracker/ – view active sessions, devices, and locations
 
-auditlog/ – track changes and actions
-
-sessiontracker/ – show active user sessions and device info
-
-📝 License
+License
 MIT – free to use, modify, and share.
 
-✍️ Author
-Built with ❤️ by Kennet Olesen - Fraccy. Contributions welcome.
+Author
+by Kennet Olesen – Fraccy
+Contributions welcome!
