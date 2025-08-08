@@ -1,22 +1,18 @@
 {% extends 'base.html' %}
-
+{% block title %}
+  Profile
+{% endblock %}
 {% block content %}
   <h1>Profile</h1>
-
-  {% if user %}
-    <p>Welcome, {{ user.username }}!</p>
-    <ul>
-      <li>Email: {{ user.email }}</li>
-      <li>bio: {{ user.profile.bio }}</li>
-      <li>country: {{ user.profile.location }}</li>
-    </ul>
-
-    <a href="{% url 'profile_edit' %}" class="btn btn-primary">Edit Profile</a><br /><br />
-    <form method="POST" action="{% url 'logout' %}">
-      {% csrf_token %}
-      <button class="btn btn-danger">Log out</button>
-    </form>
-  {% else %}
-    <p>You are not logged in.</p>
-  {% endif %}
+  <p>Welcome, {{ user.username }}!</p>
+  <ul>
+    <li>Email: {{ user.email }}</li>
+    <li>Bio: {{ profile.bio|default:'-' }}</li>
+    <li>Location: {{ profile.location|default:'-' }}</li>
+  </ul>
+  <a href="{% url 'profile_edit' %}" class="btn btn-primary">Edit Profile</a>
+  <form method="post" action="{% url 'logout' %}" class="d-inline ms-2">
+    {% csrf_token %}
+    <button class="btn btn-danger">Log out</button>
+  </form>
 {% endblock %}

@@ -1,32 +1,31 @@
 import os
 import base64
+from hmac import compare_digest
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
-from cryptography.fernet import Fernet
 
-# Generate a random salt (used to create unique encryption keys)
-def generate_salt():
+# hvorfor: irreversibel hash i stedet for dekrypterbar kryptering
+
+ITERATIONS = 210_000  # kan hæves i prod
+
+
+def generate_salt() -> bytes:
     return os.urandom(16)
 
-# Create a key from a user's password and salt
-def generate_key(user_password, salt):
-    if isinstance(user_password, str):
-        user_password = user_password.encode()
 
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=32,
-        salt=salt,
-        iterations=100000,
-    )
-    return base64.urlsafe_b64encode(kdf.derive(user_password))
+def _derive(password: bytes, salt: bytes, iterations: int = ITERATIONS) -> bytes:
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=iterations)
+    return kdf.derive(password)
 
-# Encrypt password (or any text) with the given key
-def encrypt_password(raw_password, key):
-    f = Fernet(key)
-    return f.encrypt(raw_password.encode())
 
-# Decrypt the password using the same key
-def decrypt_password(encrypted_password, key):
-    f = Fernet(key)
-    return f.decrypt(encrypted_password).decode()
+def hash_password(password: str, salt: bytes) -> str:
+    if isinstance(password, str):
+        password = password.encode()
+    dk = _derive(password, salt)
+    return base64.urlsafe_b64encode(dk).decode()
+
+
+def verify_password(password: str, salt_b64: str, stored_hash_b64: str) -> bool:
+    salt = base64.b64decode(salt_b64)
+    calc = hash_password(password, salt)
+    return compare_digest(calc, stored_hash_b64)

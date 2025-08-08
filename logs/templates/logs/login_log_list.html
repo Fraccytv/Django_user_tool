@@ -1,0 +1,82 @@
+<!-- templates/logs/login_log_list.html (opdateret) -->
+{% extends 'base.html' %}
+{% block title %}
+  Auth Events
+{% endblock %}
+{% block content %}
+  <h1>Auth Events</h1>
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-md-2">
+      <label class="form-label">User</label>
+      {{ form.username|add_class:'form-control' }}
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">IP</label>
+      {{ form.ip|add_class:'form-control' }}
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Status</label>
+      {{ form.status|add_class:'form-select' }}
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Event</label>
+      {{ form.event_type|add_class:'form-select' }}
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">From</label>
+      {{ form.date_from|add_class:'form-control' }}
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">To</label>
+      {{ form.date_to|add_class:'form-control' }}
+    </div>
+    <div class="col-12 text-end">
+      <button class="btn btn-primary">Filter</button>
+      <a class="btn btn-outline-secondary" href="?">Reset</a>
+    </div>
+  </form>
+
+  <table class="table table-sm table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>User</th>
+        <th>IP</th>
+        <th>Event</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for l in logs %}
+        <tr>
+          <td>{{ l.timestamp }}</td>
+          <td>{{ l.user.username }}</td>
+          <td>{{ l.ip_address }}</td>
+          <td>{{ l.get_event_type_display }}</td>
+          <td>{{ l.get_status_display }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5" class="text-muted">No logs yet</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <nav>
+    <ul class="pagination">
+      {% if logs.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ logs.previous_page_number }}&{{ query }}">Previous</a>
+        </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Page {{ logs.number }} of {{ logs.paginator.num_pages }}</span>
+      </li>
+      {% if logs.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ logs.next_page_number }}&{{ query }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endblock %}

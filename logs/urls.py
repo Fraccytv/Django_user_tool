@@ -1,6 +1,9 @@
+# logs/urls.py
 from django.urls import path
-from . import views
+from .views import login_log_list
+
+app_name = "logs"
 
 urlpatterns = [
-    path("logs/", views.login_log_list, name="log_list"),
+    path("logs/", login_log_list, name="log_list"),  # ender som /logs/ når inkluderet fra ""
 ]

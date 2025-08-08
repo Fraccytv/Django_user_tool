@@ -14,9 +14,3 @@ class CustomUser(models.Model):
     class Meta:
         verbose_name = "CustomUser"
         verbose_name_plural = "CustomUsers"
-
-
-# 💡 Notes:
-# - Passwords are encrypted using Fernet (not Django's default hashing)
-# - This is a custom auth system — not based on Django's AbstractBaseUser
-# - You must implement login/session tracking manually

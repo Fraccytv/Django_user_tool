@@ -4,6 +4,6 @@ from accounts.models import CustomUser
 from .models import Profile
 
 @receiver(post_save, sender=CustomUser)
-def create_profile_for_new_user(sender, instance, created, **kwargs):
+def create_profile_for_new_user(sender, instance: CustomUser, created: bool, **kwargs):
     if created:
-        Profile.objects.create(user=instance)
+        Profile.objects.get_or_create(user=instance)
