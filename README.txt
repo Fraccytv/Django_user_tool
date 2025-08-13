@@ -25,7 +25,7 @@ A modular, secure, and beginner-friendly user authentication system for Django �
 * Secret key generation with `pyotp`
 * QR code creation with `qrcode`
 * Token validation logic
-* Backend library only (no views/templates). You can add small plug-and-play views if you want full UI.
+* Backend library only (no views/templates).
 
 ### `profiles/`
 
@@ -56,7 +56,7 @@ your_project/
 
 ### 1. Install dependencies
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
@@ -66,7 +66,7 @@ pip install -r requirements.txt
 
 ### 3. Update `settings.py`
 
-```python
+```
 INSTALLED_APPS = [
     ...,
     'bootstrap5',
@@ -80,7 +80,7 @@ TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates']
 
 ### 4. Update `urls.py`
 
-```python
+```
 urlpatterns = [
     path('', include('accounts.urls')),
     path('', include('logs.urls')),
@@ -90,14 +90,14 @@ urlpatterns = [
 
 ### 5. Migrate database
 
-```bash
+```
 python manage.py makemigrations
 python manage.py migrate
 ```
 
 ### 6. (Optional) Create admin user
 
-```bash
+```
 python manage.py createsuperuser
 ```
 
@@ -115,8 +115,6 @@ python manage.py createsuperuser
 
 ## Future Ideas
 
-* `auditlog/` – track model edits
-* `sessiontracker/` – monitor active sessions & devices
 
 ---
 
