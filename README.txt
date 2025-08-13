@@ -122,4 +122,4 @@ python manage.py createsuperuser
 
 MIT – free to use and modify.
 
-**Author:** Kennet Olesen – Fraccy
+**Author:** Fraccy
